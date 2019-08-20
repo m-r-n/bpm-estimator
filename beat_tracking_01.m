@@ -87,39 +87,51 @@ plot (vadx1/1000)
 colorbar
 
 sound(x1, fs)
-
 %% BPM extraction
+
 nrg_seg_len = 300; % here 100 means 1 sec.
 
 from = 1 
-till = nrg_seg_len;
+till = nrg_seg_len
 nrg1 = nrg_deriv3(from:till);
 
 from = 1+ nrg_seg_len 
-till = 2*nrg_seg_len;
+till = 2*nrg_seg_len
 nrg2 = nrg_deriv3(from:till);
 
-fromv = 1+ 2*nrg_seg_len 
-till = 3*nrg_seg_len;
+from = 1+ 2*nrg_seg_len 
+till = 3*nrg_seg_len
 nrg3 = nrg_deriv3(from:till);
 
 %nrg1 = nrgx1(1:200);
 %nrg2 = nrgx1(201:400);
 %nrg3 = nrgx1(401:600);
-
-
 %% look at BPM curve
+
+% autocorraletion of envelope inside 3sec audio:
 nrg_corr1= xcorr (nrg1, nrg1);
 nrg_corr2= xcorr (nrg2, nrg2);
 nrg_corr3= xcorr (nrg3, nrg3);
 
+% zeroing around zero lag:
+from = nrg_seg_len-10;
+till = nrg_seg_len+10;
+nrg_corr1(from:till) = 0;
+nrg_corr2(from:till) = 0;
+nrg_corr3(from:till) = 0;
 
+% would be a good idea to mirror around the center 
+% and add each mirrorewd halve once more
+nrg_sum3x=nrg_corr1+nrg_corr2+nrg_corr3;
 %% plotting BPM estimaiton
+
 figure(2); clf
 hold on; 
-title ('BPM estimation: position*stepsize / fs in BPM')
-plot(nrg_corr1,'r')
-plot(nrg_corr2,'g')
-plot(nrg_corr3,'b')
-plot(nrg_corr1+nrg_corr2+nrg_corr3,'k')
-grid 
+title ('BPM estimation: 6000/(first-peak-position) [bpm]')
+plot(nrg_corr1(nrg_seg_len:end),'r')
+plot(nrg_corr2(nrg_seg_len:end),'g')
+plot(nrg_corr3(nrg_seg_len:end),'b')
+plot(nrg_sum3x(nrg_seg_len:end),'k')
+grid
+xlabel('correlation lag: 1 sample is 10msec.')
+ylabel('autocorrelation of signal envelope')
